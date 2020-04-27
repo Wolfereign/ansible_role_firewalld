@@ -1,0 +1,56 @@
+---
+
+- name: create services config directory
+  file:
+    path: '/etc/firewalld/services'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+- name: generate merged service fact
+  set_fact:
+    fwd_merged_services: "{{ fwd_services }}"
+
+- name: merge extra services variable dictionaries
+  set_fact:
+    fwd_merged_services: "{{ fwd_merged_services | combine2(dict(hostvars[inventory_hostname][item]),recursive=True,list_merge='append_rp') }}"
+  with_items: "{{ hostvars[inventory_hostname].keys() | select('match', '^fwd_services_.*$') | list }}"
+
+- name: create service files
+  template:
+    src: service.xml.j2
+    dest: "/etc/firewalld/services/{{item.key.lower()}}.xml"
+    mode: 'u=rw,g=r,o=r'
+    owner: root
+    group: root
+    backup: no
+  with_dict: "{{ fwd_merged_services }}"
+  register: fwd_template_services_results
+  notify: reload firewalld
+
+- block:
+  - name: compile list of managed services
+    set_fact:
+      fwd_managed_services_files: "{{ fwd_template_services_results.results|selectattr('invocation', 'defined')|map(attribute='invocation.module_args.dest')|list }}"
+
+  - name: compile list of all service files
+    find:
+      paths: "/etc/firewalld/services"
+      patterns: "*"
+      hidden: yes
+      file_type: any
+    register: fwd_all_services_files
+
+  - name: compile list of unmanaged service files
+    set_fact:
+      fwd_service_files_to_delete: "{{ fwd_all_services_files.files|map(attribute='path')|difference(fwd_managed_services_files) }}"
+
+  - name: delete unmanaged service files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items: "{{ fwd_service_files_to_delete }}"
+    notify: reload firewalld
+    when: (fwd_service_files_to_delete|length > 0)
+  when: fwd_purge_unmanaged_services == "yes"

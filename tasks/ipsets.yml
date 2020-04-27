@@ -1,0 +1,56 @@
+---
+
+- name: create ipset config directory
+  file:
+    path: '/etc/firewalld/ipsets'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+- name: generate merged ipset fact
+  set_fact:
+    fwd_merged_ipsets: "{{ fwd_ipsets }}"
+
+- name: merge extra ipset variable dictionaries
+  set_fact:
+    fwd_merged_ipsets: "{{ fwd_merged_ipsets | combine2(dict(hostvars[inventory_hostname][item]),recursive=True,list_merge='append_rp') }}"
+  with_items: "{{ hostvars[inventory_hostname].keys() | select('match', '^fwd_ipsets_.*$') | list }}"
+
+- name: create ipset files
+  template:
+    src: ipset.xml.j2
+    dest: "/etc/firewalld/ipsets/{{item.key.lower()}}.xml"
+    mode: 'u=rw,g=r,o=r'
+    owner: root
+    group: root
+    backup: no
+  with_dict: "{{ fwd_merged_ipsets }}"
+  register: fwd_template_ipsets_results
+  notify: reload firewalld
+
+- block:
+  - name: compile list of managed ipsets
+    set_fact:
+      fwd_managed_ipsets_files: "{{ fwd_template_ipsets_results.results|selectattr('invocation', 'defined')|map(attribute='invocation.module_args.dest')|list }}"
+
+  - name: compile list of all ipset files
+    find:
+      paths: "/etc/firewalld/ipsets"
+      patterns: "*"
+      hidden: yes
+      file_type: any
+    register: fwd_all_ipsets_files
+
+  - name: compile list of unmanaged ipset files
+    set_fact:
+      fwd_ipset_files_to_delete: "{{ fwd_all_ipsets_files.files|map(attribute='path')|difference(fwd_managed_ipsets_files) }}"
+
+  - name: delete unmanaged ipset files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items: "{{ fwd_ipset_files_to_delete }}"
+    notify: reload firewalld
+    when: (fwd_ipset_files_to_delete|length > 0)
+  when: fwd_purge_unmanaged_ipsets == "yes"

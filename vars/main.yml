@@ -1,0 +1,120 @@
+---
+
+fwd_create_zones:
+  Block:
+    target: "%%REJECT%%"
+    description: "Unsolicited incoming network packets are rejected. Incoming packets that are related to outgoing network connections are accepted. Outgoing network connections are allowed."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  DMZ:
+    target: "%%REJECT%%"
+    description: "For computers in your demilitarized zone that are publicly-accessible with limited access to your internal network. Only selected incoming connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  Drop:
+    target: "DROP"
+    description: "Unsolicited incoming network packets are dropped. Incoming packets that are related to outgoing network connections are accepted. Outgoing network connections are allowed."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  External:
+    target: "DROP"
+    description: "For use on external networks. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: true
+  Home:
+    target: "%%REJECT%%"
+    description: "For use in home areas. You mostly trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  Internal:
+    target: "%%REJECT%%"
+    description: "For use on internal networks. You mostly trust the other computers on the networks to not harm your computer. Only selected incoming connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  Public:
+    target: "DROP"
+    description: "For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  Trusted:
+    target: "ACCEPT"
+    description: "All network connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false
+  Work:
+    target: "%%REJECT%%"
+    description: "All network connections are accepted."
+    interfaces: []
+    sources: []
+    protocols: []
+    services: []
+    ports: []
+    rich_rules: []
+    direct_rules: []
+    icmp_blocks: []
+    icmp_block_inversion: false
+    masquerade: false

@@ -1,0 +1,12 @@
+---
+
+- name: restart firewalld
+  systemd:
+    name: firewalld
+    state: restarted
+  when: fwd_allow_reload == "yes"
+
+- name: reload firewalld
+  command: firewall-cmd --reload
+  listen: reload firewall
+  when: fwd_allow_reload == "yes"

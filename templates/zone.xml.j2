@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- {{ ansible_managed }} -->
+
+{% set zn = item.value %}
+<zone {% if (zn.target is defined) and (zn.target|length > 0) %}target="{{zn.target}}"{% endif %}>
+  <short>{{item.key}}</short>
+  <description>{% if zn.description is defined %}{{zn.description}}{% endif %}</description>
+
+{% if (zn.interfaces is defined) and (zn.interfaces|length > 0) %}
+<!-- Interfaces To Assign To Zone -->
+{%  for interface in zn.interfaces %}
+  <interface name="{{interface}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (zn.sources is defined) and (zn.sources|length > 0) %}
+<!-- Sources To Assign To Zone -->
+{%  for source in zn.sources %}
+{%    if (source.address is defined) and (source.address|length > 0) %}
+  <source address="{{source.address}}" />
+{%    endif %}
+{%    if (source.mac is defined) and (source.mac|length > 0) %}
+  <source mac="{{source.mac}}" />
+{%    endif %}
+{%    if (source.ipset is defined) and (source.ipset|length > 0) %}
+  <source ipset="{{source.ipset}}" />
+{%    endif %}
+{%  endfor %}
+{% endif %}
+
+{% if (zn.protocols is defined) and (zn.protocols|length > 0) %}
+  <!-- Protocols (Open To Entire Zone) -->
+{%  for protocol in zn.protocols %}
+  <protocol value="{{protocol}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (zn.services is defined) and (zn.services|length > 0) %}
+  <!-- Services (Open To Entire Zone) -->
+{%  for service in zn.services %}
+  <service name="{{service}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (zn.ports is defined) and (zn.ports|length > 0) %}
+  <!-- Ports (Open To Entire Zone) -->
+{%  for rule in zn.ports %}
+  <port port="{{rule.port}}" protocol="{{rule.protocol}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (zn.rich_rules is defined) and (zn.rich_rules|length > 0) %}
+  <!-- Rich Rules -->
+{%  for rule in zn.rich_rules %}
+  <!-- {{rule.name}} -->
+  {{rule.xml}}
+{%  endfor %}
+{% endif %}
+
+{% if (zn.direct_rules is defined) and (zn.direct_rules|length > 0) %}
+  <!-- Direct Rules -->
+{%  for rule in zn.direct_rules %}
+  <!-- {{rule.name}} -->
+  {{rule.xml}}
+{%  endfor %}
+{% endif %}
+
+{% if (zn.icmp_blocks is defined) and (zn.icmp_blocks|length > 0) %}
+  <!-- ICMP Types To Block -->
+{%  for block in zn.icmp_blocks %}
+  <icmp-block name="{{block}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (zn.icmp_block_inversion is defined) and (zn.icmp_block_inversion) %}
+  <!-- Invert ICMP Block Handling (Whitelist instead of Blacklist) -->
+  <icmp-block-inversion/>
+{% endif %}
+
+{% if (zn.masquerade is defined) and (zn.masquerade) %}
+  <!-- Enable Masquerade/NAT -->
+  <masquerade/>
+{% endif %}
+
+</zone>

@@ -1,0 +1,14 @@
+---
+
+- name: find other firewall services
+  shell: "systemctl list-unit-files --type=service | cut -d'.' -f1 | egrep -i 'ferm|nftables|iptables|ip6tables|ufw'"
+  register: fwd_other_units
+  changed_when: false
+
+- name: disable other firewall services
+  systemd:
+    name: "{{item}}"
+    enabled: no
+    masked: yes
+    state: 'stopped'
+  with_items: "{{fwd_other_units.stdout_lines}}"

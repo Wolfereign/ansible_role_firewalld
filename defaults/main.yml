@@ -1,0 +1,43 @@
+---
+
+fwd_allow_reload: "yes" # yes/no
+
+fwd_purge_unmanaged_zones: "yes" # yes/no
+fwd_purge_unmanaged_services: "yes" # yes/no
+fwd_purge_unmanaged_ipsets: "yes" # yes/no
+
+fwd_ipsets:
+  groupa:
+    description: "Example ipset for non-existant group of computers"
+    entries:
+      - "192.168.8.0/24"
+      - "192.168.9.0/24"
+  groupb:
+    description: "Example ipset for second non-existant group of computers"
+    entries:
+      - "192.168.10.0/24"
+      - "192.168.11.0/24"
+
+fwd_services:
+  ssh:
+    ports:
+      - port: "22"
+        protocol: "tcp"
+
+fwd_zones:
+  Public:
+    rich_rules:
+      - name: "Ansible AWX SSH Access"
+        xml: |
+          <rule family="ipv4">
+            <source address="192.168.15.213" />
+            <service name="ssh" />
+            <accept/>
+          </rule>
+      - name: "groupa ssh access"
+        xml: |
+          <rule family="ipv4">
+            <source ipset="groupa" />
+            <service name="ssh" />
+            <accept/>
+          </rule>

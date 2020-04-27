@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- {{ ansible_managed }} -->
+
+{% set svc = item.value %}
+<service {% if (svc.version is defined) and (svc.version|length > 0) %}version="{{svc.version}}"{% endif %}>
+  <short>{{item.key}}</short>
+{% if (svc.description is defined) and (svc.description|length > 0) %}
+  <description>{{svc.description}}</description>
+{% endif %}
+
+{% if (svc.ports is defined) and (svc.ports|length > 0) %}
+{%  for port in svc.ports %}
+  <port protocol="{{port.protocol}}" port="{{port.port}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (svc.protocols is defined) and (svc.protocols|length > 0) %}
+{%  for value in svc.protocols %}
+  <protocol value="{{value}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (svc.source_ports is defined) and (svc.source_ports|length > 0) %}
+{%  for port in svc.source_ports %}
+  <source-port port="{{port.port}}" protocol="{{port.protocol}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (svc.module is defined) and (svc.module|length > 0) %}
+  <module name="{{svc.module}}"/>
+{% endif %}
+
+{% if (svc.destination is defined) and (svc.destination|length > 0) %}
+  <destination {% if (svc.destination.ipv4 is defined) and (svc.destination.ipv4|length > 0) %}ipv4="{{svc.destination.ipv4}}"{% endif %} {% if (svc.destination.ipv6 is defined) and (svc.destination.ipv6|length > 0) %}ipv6="{{svc.destination.ipv6}}"{% endif %} />
+{% endif %}
+</service>

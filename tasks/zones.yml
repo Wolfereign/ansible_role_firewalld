@@ -1,0 +1,56 @@
+---
+
+- name: create zones config directory
+  file:
+    path: '/etc/firewalld/zones'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+- name: generate merged zone fact
+  set_fact:
+    fwd_merged_zones: "{{ fwd_create_zones | combine2(fwd_zones, recursive=True, list_merge='append_rp') }}"
+
+- name: merge extra zone variable dictionaries
+  set_fact:
+    fwd_merged_zones: "{{ fwd_merged_zones | combine2(dict(hostvars[inventory_hostname][item]),recursive=True,list_merge='append_rp') }}"
+  with_items: "{{ hostvars[inventory_hostname].keys() | select('match', '^fwd_zones_.*$') | list }}"
+
+- name: create zone files
+  template:
+    src: zone.xml.j2
+    dest: "/etc/firewalld/zones/{{item.key.lower()}}.xml"
+    mode: 'u=rw,g=r,o=r'
+    owner: root
+    group: root
+    backup: no
+  with_dict: "{{ fwd_merged_zones }}"
+  register: fwd_template_zones_results
+  notify: reload firewalld
+
+- block:
+  - name: compile list of managed zones
+    set_fact:
+      fwd_managed_zones_files: "{{ fwd_template_zones_results.results|selectattr('invocation', 'defined')|map(attribute='invocation.module_args.dest')|list }}"
+
+  - name: compile list of all zone files
+    find:
+      paths: "/etc/firewalld/zones"
+      patterns: "*"
+      hidden: yes
+      file_type: any
+    register: fwd_all_zones_files
+
+  - name: compile list of unmanaged zone files
+    set_fact:
+      fwd_zone_files_to_delete: "{{ fwd_all_zones_files.files|map(attribute='path')|difference(fwd_managed_zones_files) }}"
+
+  - name: delete unmanaged zone files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items: "{{ fwd_zone_files_to_delete }}"
+    notify: reload firewalld
+    when: (fwd_zone_files_to_delete|length > 0)
+  when: fwd_purge_unmanaged_zones == "yes"

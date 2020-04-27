@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- {{ ansible_managed }} -->
+
+{% set ips = item.value %}
+<ipset {% if (ips.type is defined) and (ips.type|length > 0) %}type="{{ips.type}}"{% else %}type="hash:net"{% endif %} {% if (ips.version is defined) and (ips.version|length > 0) %}version="{{ips.version}}"{% endif %} >
+  <short>{{item.key}}</short>
+{% if (ips.description is defined) and (ips.description|length > 0) %}
+  <description>{{ips.description}}</description>
+{% endif %}
+
+{% if (ips.options is defined) and (ips.options|length > 0) %}
+{%  for option in ips.options %}
+  <option name="{{option.name}}" value="{{option.value}}" />
+{%  endfor %}
+{% endif %}
+
+{% if (ips.entries is defined) and (ips.entries|length > 0) %}
+{%  for entry in ips.entries %}
+  <entry>{{entry}}</entry>
+{%  endfor %}
+{% endif %}
+</ipset>

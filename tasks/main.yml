@@ -1,0 +1,40 @@
+- name: Install firewalld
+  package:
+    name: "firewalld"
+    state: present
+
+- name: ensure configuration directory
+  file:
+    path: '/etc/firewalld'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+- name: Set firewalld.conf
+  copy:
+    src: firewalld.conf
+    dest: '/etc/firewalld/firewalld.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    backup: no
+  notify: restart firewalld
+
+- name: define services
+  include_tasks: services.yml
+
+- name: define ipsets
+  include_tasks: ipsets.yml
+
+- name: define zones
+  include_tasks: zones.yml
+
+- name: disable and uninstall other firewalls
+  include_tasks: others.yml
+
+- name: Enable firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: started
